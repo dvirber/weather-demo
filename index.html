@@ -1,0 +1,109 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your AI Assistant</title>
+  <style>
+    body {
+      background-color: #0d1117;
+      color: #c9d1d9;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      background-color: #161b22;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+      color: #58a6ff;
+    }
+    #chat {
+      flex-grow: 1;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+    .message {
+      margin-bottom: 1rem;
+    }
+    .user {
+      color: #58a6ff;
+    }
+    .bot {
+      color: #8b949e;
+    }
+    form {
+      display: flex;
+      border-top: 1px solid #30363d;
+    }
+    input {
+      flex-grow: 1;
+      padding: 1rem;
+      border: none;
+      outline: none;
+      background-color: #0d1117;
+      color: #c9d1d9;
+    }
+    button {
+      background-color: #238636;
+      color: white;
+      border: none;
+      padding: 1rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>Your AI Assistant</header>
+  <div id="chat"></div>
+  <form id="form">
+    <input type="text" id="input" placeholder="Ask something..." />
+    <button type="submit">Send</button>
+  </form>
+
+  <script>
+    const chat = document.getElementById('chat');
+    const form = document.getElementById('form');
+    const input = document.getElementById('input');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const userMessage = input.value;
+      if (!userMessage) return;
+      appendMessage('You', userMessage, 'user');
+      input.value = '';
+      appendMessage('Bot', 'Thinking...', 'bot');
+
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer YOUR_OPENAI_API_KEY'
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [{ role: 'user', content: userMessage }]
+        })
+      });
+
+      const data = await res.json();
+      const botReply = data.choices?.[0]?.message?.content || 'Error getting response';
+
+      chat.lastChild.remove();
+      appendMessage('Bot', botReply, 'bot');
+    });
+
+    function appendMessage(sender, text, cls) {
+      const msg = document.createElement('div');
+      msg.classList.add('message', cls);
+      msg.innerHTML = `<strong>${sender}:</strong> ${text}`;
+      chat.appendChild(msg);
+      chat.scrollTop = chat.scrollHeight;
+    }
+  </script>
+</body>
+</html>
